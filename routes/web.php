@@ -17,6 +17,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+Route::group(['middleware' => ['role:admin']], function () {
+    Route::get('/admin/panel', 'AdminController@panelAction');
+});
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

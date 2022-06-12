@@ -7,11 +7,13 @@ use App\Models\News;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\File;
 
 
 class AdminController extends Controller
 {
     public $maxFiles = 5;
+    public $maxFolders = 3;
     public $dirNews = 'public/news/';
 
     public function panel() {
@@ -21,12 +23,58 @@ class AdminController extends Controller
     # Страница
     public function newsList() {
         return view('admin.news.list', [
-            'list' => News::all(),
+            'list' => News::where('published', true)->orderByDesc('id')->get(),
         ]);
     }
 
     # Страница создания новости
     public function newCreate() {
+        $article = News::where('published', false)->first();
+
+        # Создаём не заполненную статью
+        if(!$article) {
+            $article = new News();
+            $article->save();
+        }
+
+        # Определяем директорию папки
+        $files = Storage::directories($this->dirNews);
+
+        foreach ($files as $file) {
+            $dirNumber = str_replace($this->dirNews,'', $file);
+            $directories[] = $dirNumber;
+        }
+        sort($directories);
+        # Берём последнюю папку
+        $lastDir = $this->dirNews . end($directories);
+
+        # Проверяем количество директорий в папке
+        $countDirectories = count(Storage::directories($lastDir));
+        # Номер общей папки
+        $folder = end($directories);
+
+        # Проверить - если папка не существует - то создать.
+        if(!File::exists('storage/news/'. $folder . '/' . $article->id)) {
+            if ($countDirectories >= $this->maxFolders) {
+                # Создаём новую папку
+                $folder = end($directories) + 1;
+                $newDir = 'storage/news/' . $folder;
+                File::makeDirectory($newDir);
+
+                # А в ней ещё одну папку с id статьи
+                File::makeDirectory($newDir . '/' . $article->id);
+            } else {
+                # А если нет перегрузки файлов, то проверяем есть ли уже папка с id
+//            if(!File::exists('storage/news/'. $folder . '/' . $article->id) == false) {
+                File::makeDirectory('storage/news/' . $folder . '/' . $article->id);
+//            }
+            }
+        }
+
+        # Сохраняем номер папки в поле `folder`
+        $article->folder = $folder;
+        $article->save();
+
         return view('admin.news.create');
     }
 
@@ -44,33 +92,22 @@ class AdminController extends Controller
             'cover.required' => 'Загрузите обложку',
         ])->validateWithBag('post');
 
-        $files = Storage::directories($this->dirNews);
 
-        foreach ($files as $file) {
-            $dirNumber = str_replace($this->dirNews,'', $file);
-            $directories[] = $dirNumber;
-        }
+        $new = News::where('published', false)->first();
 
-        sort($directories);
-        # Берём последнюю папку
-        $lastDir = $this->dirNews . end($directories);
-        # Проверяем количество файлов в папке
-        $countFiles = count(Storage::files($lastDir));
-        if($countFiles >= $this->maxFiles) {
-            // Обрезаем строку, получаем номер папки, добавляем +1 и создаём новую папку
-            $newDir = $this->dirNews . (str_replace($this->dirNews,'', $lastDir) + 1);
-            $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($newDir));
-        } else {
-            $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($lastDir));
-        }
+        # Загружаем картинку в хранилище
+        $path = 'public/news/' . $new->folder . '/' . $new->id;
 
-        # Добавляем статью
-        $new = new News();
+        # Добавляем статью и загружаем обложку
         $new->title = $request->input('title');
         $new->content = $request->input('content');
         $new->date_time = date("Y-m-d H:i:s");
-        $new->img = $path;
+        $new->img = '/storage/' . str_replace('public/','', $request->file('cover')->store($path));
+        $new->published = true;
         $new->save();
+
+        # Чистка неиспользуемых картинок в директории
+        Admin::clearDirImages(Storage::files($path), $new, $request->input('content'));
 
         return redirect()->back()->withSuccess('Статья успешно добавлена');
     }
@@ -80,7 +117,6 @@ class AdminController extends Controller
     {
         # Проверка наличия статьи в базе
         $article = News::where('id', $id)->first();
-//        dd(public_path($article->img));
         if (!$article) {
             abort(404);
         }
@@ -96,40 +132,26 @@ class AdminController extends Controller
                 'content.required' => 'Заполните статью контентом',
             ])->validateWithBag('post');
 
+            # Если картинка не меняется - то оставляем её
+            $path = $article->img;
+            # Путь к папке
+            $pathToSave = '/public/news/' . $article->folder . '/' . $article->id;
+
             # Если выбрана картинка - то заменить её
             if($request->cover) {
-                $file = file_exists(public_path($article->img));
-
+                $file = File::exists(public_path($article->img));
                 # Проверка наличия файла для игнорирования ошибки
                 if($file){
                     # Удаляем предыдущю картинку
                     unlink(public_path($article->img));
                 }
 
-                $files = Storage::directories($this->dirNews);
-
-                foreach ($files as $file) {
-                    $dirNumber = str_replace($this->dirNews,'', $file);
-                    $directories[] = $dirNumber;
-                }
-
-                sort($directories);
-                $lastDir = $this->dirNews . end($directories);
-                $countFiles = count(Storage::files($lastDir));
-                if($countFiles >= $this->maxFiles) {
-                    # Обрезаем строку, получаем номер папки, добавляем +1 и создаём новую папку
-                    $newDir = $this->dirNews . (str_replace($this->dirNews,'', $lastDir) + 1);
-                    $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($newDir));
-                } else {
-                    $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($lastDir));
-                }
-//                dd($path);
+                # Загружаем свежую
+                $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($pathToSave));
             }
 
-            # Если картинка не меняется - то оставляем её
-            if(!isset($path)) {
-                $path = $article->img;
-            }
+            # Чистка неиспользуемых картинок в content
+            Admin::clearDirImages(Storage::files($pathToSave), $article, $request->input('content'));
 
             # Обновляем данные
             News::where('id', $id)->update([
@@ -149,7 +171,42 @@ class AdminController extends Controller
 
     # Удаление новости
     public function newDelete($id) {
-        News::where('id', $id)->delete();
+        $new = News::where('id', $id)->first();
+        Storage::deleteDirectory('public/news/' . $new->folder . '/' . $new->id);
+        $new->delete();
         return redirect()->back()->withSuccess('Статья удалена');
+    }
+
+    # Загрузка картинки в textarea ( TinyMCE )
+    public function upload(Request $request){
+        # С помощью цикла вычисляем id из строки предыдущего url
+        $url = url()->previous();
+        $length = strlen($url);
+        for($i = 1; $i <= $length; $i++) {
+            # Ищем разделитель в строке начиная с конца строки
+            $string = substr($url, $i - $i * 2);
+
+            # Если находим - удаляем и выходим из цикла с полученным результатом
+            if(strpos($string, '/') !== false) {
+                $id = str_replace('/', '', $string);
+                break;
+            }
+        }
+
+        switch ($id) {
+            case 'create':
+                $new = News::where('published', false)->first();
+                break;
+            default:
+                $new = News::where('id', $id)->first();
+        }
+
+        $id = $new->id;
+        $folder = $new->folder;
+
+        # Должно загружать в папку с id статьи
+        $fileName = rand(0, 100000000) . $request->file('file')->getClientOriginalName();
+        $path = $request->file('file')->storeAs('news/'. $folder .'/' . $id , $fileName, 'public');
+        return response()->json(['location'=>"/storage/$path"]);
     }
 }

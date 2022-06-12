@@ -9,7 +9,7 @@ class News extends Model
 {
     # Значения атрибутов по умолчанию
     protected $attributes = [
-        'img' => '',
+        'img' => '-',
         'description' => '',
     ];
 

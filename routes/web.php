@@ -28,6 +28,8 @@ Route::group(['middleware' => ['role:admin']], function () {
     Route::any('/admin/panel/new/update/{id}', 'AdminController@newUpdate')->name('new.update');
     # Удаление статьи
     Route::post('/admin/panel/new/delete/{id}', 'AdminController@newDelete')->name('new.delete');
+    # Загрузка картинок через TinyMCE
+    Route::post('/upload', 'AdminController@upload');
 });
 
 Auth::routes();

@@ -13,14 +13,15 @@ class Admin extends Model
 
     # Очистка неиспользуемых картинок в директориях
     public static function clearDirImages($files, $object, $content) {
-
-//        dd($object->images[0]);
         # Пускаем цилк по всем картинкам и ищем их вхождение в контенте
+        $cover = str_replace('/storage/','', $object->img);
+        dump($cover);
+        dd(1);
+        $cover = str_replace('/storage/','', $object->img);
         foreach ($files as $img) {
             # Сохраняем картинку в отдельную переменную, потому что дальше мы её будем менять
             $oldImg = $img;
             $img = str_replace('public/','', $img);
-            $cover = str_replace('/storage/','', $object->img);
 
             $screenSearch = false; // Переменная для определения поиска картинки среди скриншотов
             $coverSearch = false; // Переменная для определения поиска картинки среди обложки
@@ -35,12 +36,14 @@ class Admin extends Model
                 $coverSearch = true;
             }
 
-            # Затем проверяем не является ли картинка скриншотом
-            foreach ($object->images as $image) {
-                $screen = str_replace('/storage/','', $image->href);
-                if($img == $screen) {
-                    $screenSearch = true;
-                    break;
+            # Затем проверяем не является ли картинка скриншотом если имеются картинки
+            if(isset($object->images)){
+                foreach ($object->images as $image) {
+                    $screen = str_replace('/storage/','', $image->href);
+                    if($img == $screen) {
+                        $screenSearch = true;
+                        break;
+                    }
                 }
             }
 

@@ -16,8 +16,10 @@ return new class extends Migration
         Schema::create('mods_images', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('mod_id')->references('id')->on('mods');
-            $table->string('src');
+            $table->foreignId('mod_id')
+                ->references('id')->on('mods')
+                ->onDelete('cascade');
+            $table->string('href')->nullable();
         });
     }
 

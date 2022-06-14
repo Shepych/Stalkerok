@@ -5,6 +5,7 @@ tinymce.init({
     image_class_list: [
         {title: 'img-responsive', value: 'img-responsive'},
     ],
+    relative_urls : false,
     height: 500,
     setup: function (editor) {
         editor.on('init change', function () {

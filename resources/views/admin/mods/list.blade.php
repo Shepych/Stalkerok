@@ -18,11 +18,11 @@
             </div>
 
             <hr>
-{{--            <a href="{{ route('new.update', $mod->id) }}">Изменить</a>--}}
-{{--            <form action="{{ route('new.delete', $mod->id) }}" method="post">--}}
-{{--                @csrf--}}
-{{--                <input type="submit" value="Удалить">--}}
-{{--            </form>--}}
+            <a href="{{ route('mod.update', $mod->id) }}">Изменить</a>
+            <form action="{{ route('mod.delete', $mod->id) }}" method="post">
+                @csrf
+                <input type="submit" value="Удалить">
+            </form>
         </div>
     @endforeach
 @endsection

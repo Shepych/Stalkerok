@@ -2,7 +2,8 @@
 @extends('layouts.admin')
 
 @section('content')
-    <h1>Создание мода</h1>
+    <h1>Обновление мода</h1>
+
     @if(session('success'))
         <div style="background-color: green">
             {{ session('success') }}
@@ -11,12 +12,12 @@
 
     @if($errors->post->any())
         <div style="background-color: red;color:white">
-        @foreach($errors->post->all() as $error)
+            @foreach($errors->post->all() as $error)
                 {{ $error }}<br>
-        @endforeach
+            @endforeach
         </div>
     @endif
-    <form style="display:flex;flex-direction:column;margin-bottom:20px" action="{{ route('mod.store') }}" method="post" enctype="multipart/form-data">
+    <form style="display:flex;flex-direction:column;margin-bottom:20px" action="{{ route('mod.update', $mod->id) }}" method="post" enctype="multipart/form-data">
         @csrf
         <label>
             <input type="text" name="title" value="{{ $mod->title }}" placeholder="Название"><br>
@@ -77,7 +78,7 @@
 
         <textarea name="seo_description" id="" cols="30" rows="10">{{ $mod->seo_description }}</textarea>
 
-        <input type="submit" value="Добавить модификацию" style="width: 200px">
+        <input type="submit" value="Сохранить изменения" style="width: 200px">
     </form>
 
     <a href="{{ route('admin.mods.list') }}">Назад к списку модов</a><br>

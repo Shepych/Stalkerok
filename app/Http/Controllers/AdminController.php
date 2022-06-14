@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\Mods;
+use App\Models\ModsImages;
 use App\Models\News;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -79,11 +81,18 @@ class AdminController extends Controller
         $article->folder = $folder;
         $article->save();
 
-        return view('admin.news.create');
+        return view('admin.news.create', [
+            'article' => $article,
+        ]);
     }
 
     # Обработка данных и создание новости
     public function newStore(Request $request) {
+        # Сохраняем данные чтобы не сбросились после валидации
+        $new = News::where('published', false)->first();
+        $new->title = $request->input('title');
+        $new->content = $request->input('content');
+        $new->save();
         # Валидация данных
         Validator::make($request->all(), [
             'title' => 'required|max:255',
@@ -96,14 +105,19 @@ class AdminController extends Controller
             'cover.required' => 'Загрузите обложку',
         ])->validateWithBag('post');
 
-
-        $new = News::where('published', false)->first();
+        # Проверка на уникальность ( отдельно, чтобы не было бага )
+        Validator::make(['url' => Str::slug($request->input('title'))], [
+            'url' => 'unique:mods',
+        ],[
+            'url.unique' => 'Не уникальный URL',
+        ])->validateWithBag('post');
 
         # Путь к картинке в хранилище
         $path = $this->dirNews . $new->folder . '/' . $new->id;
 
         # Добавляем статью и загружаем обложку
         $new->title = $request->input('title');
+        $new->url = Str::slug($request->input('title'));
         $new->content = $request->input('content');
         $new->date_time = date("Y-m-d H:i:s");
         $new->img = '/storage/' . str_replace('public/','', $request->file('cover')->store($path));
@@ -143,13 +157,6 @@ class AdminController extends Controller
 
             # Если выбрана картинка - то заменить её
             if($request->cover) {
-                $file = File::exists(public_path($article->img));
-                # Проверка наличия файла для игнорирования ошибки
-                if($file){
-                    # Удаляем предыдущю картинку
-                    unlink(public_path($article->img));
-                }
-
                 # Загружаем свежую
                 $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($pathToSave));
             }
@@ -294,7 +301,16 @@ class AdminController extends Controller
         $mod = Mods::where('published', false)->first();
         $mod->title = $request->input('title');
         $mod->content = $request->input('content');
-        $mod->tags = $request->input('tags');
+        # Формирование тегов в строку через хелпеп
+        $mod->tags = convertTagsToString($request->input('tags'));
+        $mod->platform = $request->input('platform');
+        $mod->description = $request->input('description');
+        $mod->seo_description = $request->input('seo_description');
+        $mod->torrent = $request->input('torrent');
+        $mod->yandex = $request->input('yandex');
+        $mod->google = $request->input('google');
+        $mod->memory = $request->input('memory');
+        $mod->video = $request->input('video');
         $mod->platform = $request->input('platform');
         $mod->save();
 
@@ -317,14 +333,15 @@ class AdminController extends Controller
             'platform.required' => 'Платформа не выбрана',
         ])->validateWithBag('post');
 
+        # Проверка на уникальность ( отдельно, чтобы не было бага )
+        Validator::make(['url' => Str::slug($request->input('title'))], [
+            'url' => 'unique:mods',
+        ],[
+            'url.unique' => 'Не уникальный URL',
+        ])->validateWithBag('post');
+
         # Если валидация проходит - то публикуем мод и сохраняем оставшиеся данные
-        $mod->video = $request->input('video');
-        $mod->memory = $request->input('memory');
-//        $mod->description = $request->input('description');
-//        $mod->seo_description = $request->input('seo_description');
-        $mod->torrent = $request->input('torrent');
-        $mod->yandex = $request->input('yandex');
-        $mod->google = $request->input('google');
+        $mod->url = Str::slug($request->input('title'));
         $mod->published = true;
 
         # Добавить файлы в папку (обложку, скриншоты и контент)
@@ -344,5 +361,101 @@ class AdminController extends Controller
         # Чистка неиспользуемых картинок в директории
         Admin::clearDirImages(Storage::files($path), $mod, $request->input('content'));
         return redirect()->back()->withSuccess('Модификация успешно добавлена');
+    }
+
+    # Обновление мода (Страница и обработка {get + post = any})
+    public function modUpdate(Request $request, $id) {
+        # Проверка наличия статьи в базе
+        $mod = Mods::where('id', $id)->first();
+        if (!$mod) {
+            abort(404);
+        }
+
+        ################# КОД ДУБЛИРУЕТСЯ В newUpdate #################
+        if ($request->isMethod('post')) {
+            # Валидация данных
+            Validator::make($request->all(), [
+                'title' => 'required|min:3',
+                'content' => 'required',
+//                'cover' => 'required',
+//                'screenshots' => 'required',
+                'tags' => 'required',
+                'platform' => 'required',
+            ],[
+                'title.required' => 'Заголовок не заполнен',
+                'title.min' => 'Заголовок должен содержать минимум 3 символа',
+                'content.required' => 'Контент отсутствует',
+//                'cover.required' => 'Обложка отсутствует',
+//                'screenshots.required' => 'Скриншоты отсутствуют',
+//                'screenshots.min' => 'Минимум 4 скриншота',
+                'tags.required' => 'Должен быть минимум один тэг',
+                'platform.required' => 'Платформа не выбрана',
+            ])->validateWithBag('post');
+
+            # Если картинка не меняется - то оставляем её
+            $path = $mod->img;
+
+            # Путь к папке
+            $pathToSave = '/public/mods/' . $mod->folder . '/' . $mod->id;
+
+            # Если выбрана картинка - то заменить её
+            if($request->cover) {
+                # Загружаем свежую обложку
+                $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($pathToSave));
+            }
+
+            # Если скриншоты выбраны - то заменить их
+            if($request->screenshots) {
+                # Обновить базу
+                $screensArray = [];
+                foreach ($request->screenshots as $screen) {
+                    $screensArray[] = [
+                        'mod_id' => $mod->id,
+                        'href' => '/storage/' . str_replace('public/','', $screen->store($pathToSave)),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ];
+                }
+                ModsImages::where('mod_id', $mod->id)->delete(); // Удалить старые скриншоты
+                ModsImages::insert($screensArray);
+                # Загрузить на сервер
+            }
+
+            # Обновляем данные
+            $mod->title = $request->input('title');
+            $mod->content = $request->input('content');
+            # Формирование тегов в строку через хелпеп
+            $mod->tags = convertTagsToString($request->input('tags'));
+            $mod->platform = $request->input('platform');
+            $mod->description = $request->input('description');
+            $mod->seo_description = $request->input('seo_description');
+            $mod->torrent = $request->input('torrent');
+            $mod->yandex = $request->input('yandex');
+            $mod->google = $request->input('google');
+            $mod->memory = $request->input('memory');
+            $mod->video = $request->input('video');
+            $mod->platform = $request->input('platform');
+            $mod->img = $path;
+            $mod->save();
+
+            # Чистка неиспользуемых картинок в content
+            Admin::clearDirImages(Storage::files($pathToSave), $mod, $request->input('content'));
+
+            # Сообщение об успешном сохранении
+            return redirect()->back()->withSuccess('Изменения сохранены');
+        }
+
+        return view('admin.mods.update', [
+            'mod' => $mod,
+            'tags' => DB::table('tags')->get(),
+        ]);
+    }
+
+    # Удаление мода
+    public function modDelete($id) {
+        $mod = Mods::where('id', $id)->first();
+        Storage::deleteDirectory('public/mods/' . $mod->folder . '/' . $mod->id);
+        $mod->delete();
+        return redirect()->back()->withSuccess('Мод удалён');
     }
 }

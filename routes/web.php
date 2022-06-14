@@ -17,9 +17,6 @@ Route::group(['middleware' => ['role:admin']], function () {
     Route::any('/admin/panel/update/new/{id}', 'AdminController@newUpdate')->name('new.update');
     # Удаление статьи
     Route::post('/admin/panel/delete/new/{id}', 'AdminController@newDelete')->name('new.delete');
-    # Загрузка картинок через TinyMCE
-    Route::post('/upload', 'AdminController@upload');
-
 
     # Список модов
     Route::get('/admin/panel/mods', 'AdminController@modsList')->name('admin.mods.list');
@@ -27,6 +24,13 @@ Route::group(['middleware' => ['role:admin']], function () {
     Route::get('/admin/panel/create/mod', 'AdminController@modCreate')->name('mod.create');
     # Обработчик создания мода
     Route::post('/admin/panel/store/mod', 'AdminController@modStore')->name('mod.store');
+    # Обновление мода
+    Route::any('/admin/panel/update/mod/{id}', 'AdminController@modUpdate')->name('mod.update');
+    # Удаление мода
+    Route::post('/admin/panel/delete/mod/{id}', 'AdminController@modDelete')->name('mod.delete');
+
+    # Загрузка картинок через TinyMCE
+    Route::post('/upload', 'AdminController@upload');
 });
 
 Auth::routes();

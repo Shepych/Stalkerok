@@ -15,9 +15,9 @@ class Admin extends Model
     public static function clearDirImages($files, $object, $content) {
         # Пускаем цилк по всем картинкам и ищем их вхождение в контенте
         $cover = str_replace('/storage/','', $object->img);
-        dump($cover);
-        dd(1);
-        $cover = str_replace('/storage/','', $object->img);
+//        dump($cover);
+//        dd(1);
+//        $cover = str_replace('/storage/','', $object->img);
         foreach ($files as $img) {
             # Сохраняем картинку в отдельную переменную, потому что дальше мы её будем менять
             $oldImg = $img;

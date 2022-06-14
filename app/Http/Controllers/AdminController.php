@@ -161,15 +161,14 @@ class AdminController extends Controller
                 $path = '/storage/' . str_replace('public/','', $request->file('cover')->store($pathToSave));
             }
 
+            # Обновляем данные
+            $article->title = $request->input('title');
+            $article->content = $request->input('content');
+            $article->img = $path;
+            $article->save();
+
             # Чистка неиспользуемых картинок в content
             Admin::clearDirImages(Storage::files($pathToSave), $article, $request->input('content'));
-
-            # Обновляем данные
-            News::where('id', $id)->update([
-                'title' => $request->input('title'),
-                'content' => $request->input('content'),
-                'img' => $path,
-            ]);
 
             # Сообщение об успешном сохранении
             return redirect()->back()->withSuccess('Изменения сохранены');

@@ -1,6 +1,6 @@
 // TinyMCE
 tinymce.init({
-    selector: 'textarea',
+    selector: '#tinymce',
 
     image_class_list: [
         {title: 'img-responsive', value: 'img-responsive'},

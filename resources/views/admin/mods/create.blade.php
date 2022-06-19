@@ -16,6 +16,7 @@
         @endforeach
         </div>
     @endif
+
     <form style="display:flex;flex-direction:column;margin-bottom:20px" action="{{ route('mod.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <label>

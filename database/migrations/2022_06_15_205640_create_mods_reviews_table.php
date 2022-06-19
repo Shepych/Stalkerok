@@ -16,10 +16,15 @@ return new class extends Migration
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('object_id')->references('id')->on('mods');
-            $table->foreignId('user_id')->references('id')->on('users');
-            $table->string('type')->nullable();
-            $table->string('content')->nullable();
+            $table->foreignId('object_id')
+                ->references('id')
+                ->on('mods');
+            $table->foreignId('user_id')
+                ->references('id')
+                ->on('users');
+            $table->string('title')->nullable();
+            $table->integer('rating')->nullable();
+            $table->text('content')->nullable();
         });
     }
 
@@ -30,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('mods_reviews');
     }
 };

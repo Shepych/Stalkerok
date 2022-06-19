@@ -13,7 +13,7 @@
             <a href="{{ route('new.update', $new->id) }}">Изменить</a>
             <form action="{{ route('new.delete', $new->id) }}" method="post">
                 @csrf
-                <input type="submit" value="Удалить">
+                <input type="submit" onclick="return window.confirm('Подтвердите удаление');" value="Удалить">
             </form>
         </div>
     @endforeach

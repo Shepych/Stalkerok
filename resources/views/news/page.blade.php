@@ -1,5 +1,5 @@
 @extends('layouts.main')
 
 @section('content')
-    <h1>Главная</h1>
+    <h1>{{ $article->title }}</h1>
 @endsection

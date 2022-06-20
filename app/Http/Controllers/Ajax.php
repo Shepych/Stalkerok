@@ -21,9 +21,15 @@ class Ajax extends Controller
 
     public static function valid($validate) {
         $validateMessage = '<ul style="margin-bottom: 0;padding:0">';
-        foreach ($validate->all() as $message) {
-            $validateMessage.= '<li>' . $message. '</li>';
+
+        if(is_array($validate)) {
+            foreach ($validate as $message) {
+                $validateMessage.= '<li>' . $message. '</li>';
+            }
+        } else {
+            $validateMessage.= $validate;
         }
+
         $validateMessage.= '</ul>';
         return json_encode(['message' => $validateMessage], JSON_UNESCAPED_UNICODE);
     }

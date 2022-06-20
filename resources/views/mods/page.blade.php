@@ -74,12 +74,18 @@
             Список комментариев
             @foreach($mod->comments as $comment)
                 <div style="background-color: #0a53be;color:white;margin-bottom: 20px;">
-                    {!! $comment->content !!}
+                   <div style="width: 100px;background-color: green">
+                       {{ $comment->user->name }}
+                   </div>
+
+                    <div>
+                        {!! $comment->content !!}
+                    </div>
                 </div>
             @endforeach
         </div>
 
-        <form style="width:400px" action="{{ route('mod.comment', $mod->id) }}" method="post">
+        <form class="ajax__form" style="width:400px" action="{{ route('mod.comment', $mod->id) }}" method="post">
             @csrf
             <div class="form-group">
                 <textarea id="tinymce" name="comment" cols="30" rows="10" placeholder="Введите сообщение"></textarea>

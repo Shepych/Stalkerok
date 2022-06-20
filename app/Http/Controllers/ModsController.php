@@ -175,7 +175,15 @@ class ModsController extends Controller
     }
 
     public function modComment(Request $request, $id) {
+        # Валидация сообщения и ID мода
+        if(!Mods::commentValidate($request, $id)){
+            return Ajax::valid(Mods::$error);
+        }
+
+        # Отправка комментария
         Mods::sendComment($request, $id);
+
+        # Обновление страницы
         return redirect()->back();
     }
 }

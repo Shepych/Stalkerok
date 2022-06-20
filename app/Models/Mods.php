@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 class Mods extends Model
 {
     use HasFactory;
+    public static $error;
 
     # Связь с картинками для галереи
     public function images()
@@ -32,13 +33,40 @@ class Mods extends Model
     public static function sendComment($request, $id) {
         # Валидация
 //        Validator::make()
-        DB::table('mods_comments')->insert([
-            'created_at' => date('Y-m-d H:i:m'),
-            'updated_at' => date('Y-m-d H:i:m'),
-            'user_id' => Auth::id(),
-            'mod_id' => $id,
-            'content' => $request->input('comment')
-        ]);
+        DB::transaction(function () use ($request, $id) {
+            DB::table('mods_comments')->insert([
+                'created_at' => date('Y-m-d H:i:m'),
+                'updated_at' => date('Y-m-d H:i:m'),
+                'user_id' => Auth::id(),
+                'mod_id' => $id,
+                'content' => $request->input('comment')
+            ]);
+
+            $user = User::where('id', Auth::id())->first();
+            $user->comments++;
+            $user->save();
+        }, 5);
+        return true;
+    }
+
+    public static function commentValidate($request, $id) {
+        $mod = Mods::where('id', $id)->first();
+        if(!$mod) {
+            self::$error = 'Мод не найден';
+            return false;
+        }
+
+        $validate = Validator::make($request->all(), [
+            'comment' => 'required',
+        ],[
+            'comment.required' => 'Введите ваше сообщение',
+        ])->errors();
+
+        if($validate->any()) {
+            self::$error = $validate->all();
+            return false;
+        }
+
         return true;
     }
 }

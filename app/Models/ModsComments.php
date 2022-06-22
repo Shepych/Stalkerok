@@ -9,6 +9,7 @@ class ModsComments extends Model
 {
     use HasFactory;
 
+    # Связь с пользователем
     public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }

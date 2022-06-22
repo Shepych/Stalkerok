@@ -45,6 +45,9 @@
     <div class="reviews__list">
         @foreach($mod->reviews as $review)
             <div style="background-color: {{ defineReviewColor($review->rating) }}">
+                <div style="width: 100px;background-color: black;color:white">
+                    {{ $review->user->name }}
+                </div>
                 <h5>{{ $review->title }}</h5>
                 <p>{!! $review->content !!}</p>
                 <span>{{ $review->rating }}</span>
@@ -72,7 +75,7 @@
         <h3>Комментарии</h3>
         <div class="comments__list">
             Список комментариев
-            @foreach($mod->comments as $comment)
+            @foreach($mod->comments() as $comment)
                 <div style="background-color: #0a53be;color:white;margin-bottom: 20px;">
                    <div style="width: 100px;background-color: green">
                        {{ $comment->user->name }}
@@ -83,6 +86,10 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+
+        <div class="pagination">
+            {{ $mod->comments()->links('pagination.classic') }}
         </div>
 
         <form class="ajax__form" style="width:400px" action="{{ route('mod.comment', $mod->id) }}" method="post">

@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Expr\AssignOp\Mod;
 
 class ModsController extends Controller
 {
@@ -35,24 +36,8 @@ class ModsController extends Controller
         ]);
     }
 
-    public function modPage($url) {
-        $mod = Mods::where('url', $url)->first();
-
-        $tags = DB::table('tags')->get();
-        if(!$mod) {
-            abort(404);
-        }
-
-        # Добавить проверку URL
-        if($mod->url != $url) {
-            abort(404);
-        }
-
-        # Test
-        return view('mods.page', [
-            'mod' => $mod,
-            'tags' => $tags,
-        ]);
+    public function modPage(Request $request, $url) {
+        return Mods::generateMod($request, $url);
     }
 
     public function modReview(Request $request, $id) {
@@ -177,7 +162,7 @@ class ModsController extends Controller
 
     public function modComment(Request $request, $id) {
         # Валидация сообщения и ID мода
-        if(!Mods::commentValidate($request, $id)){
+        if(!Mods::commentValidate($request, $id)) {
             return Ajax::valid(Mods::$error);
         }
 
@@ -185,6 +170,6 @@ class ModsController extends Controller
         Mods::sendComment($request, $id);
 
         # Обновление страницы
-        return redirect()->back();
+        return Ajax::redirect('/mods/' . Mods::where('id', $id)->first()->url);
     }
 }

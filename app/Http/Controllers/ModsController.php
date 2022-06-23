@@ -13,9 +13,6 @@ use PhpParser\Node\Expr\AssignOp\Mod;
 
 class ModsController extends Controller
 {
-    public $maxReviews = 8;
-    public $maxComments = 100;
-
     public function modsList(Request $request) {
         $mods = Mods::where('published', true)->orderByDesc('id')->paginate(2);
 
@@ -41,6 +38,7 @@ class ModsController extends Controller
     }
 
     public function modReview(Request $request, $id) {
+        # Необходим рефакторинг через Model
         $user = Auth::user();
 
         # Проверка на авторизацию
@@ -55,6 +53,7 @@ class ModsController extends Controller
 
         # Проверить не отправлял ли уже пользователь отзыв
         $reviews = Reviews::where('object_id', $id)->get();
+
         # Циклом проверим есть ли уже отзыв от юзера на этот мод. Цикл нужен чтобы избежать лишнего запроса на вычислении рейтинга к моду
         foreach ($reviews as $review) {
             if($review->user_id == Auth::id()) {
@@ -64,7 +63,7 @@ class ModsController extends Controller
 
         # Проверка лимитов для ежедневного ограничения отправки отзывов пользователем, во избежание спама
         $limits = DB::table('reviews')->whereDate('created_at', '=', Carbon::today()->format('Y-m-d'))->where('user_id', Auth::id())->get();
-        if($limits->count() >= $this->maxReviews) {
+        if($limits->count() >= Mods::$maxReviews) {
             return Ajax::message('На сегодня лимит отзывов исчерпан!');
         }
 

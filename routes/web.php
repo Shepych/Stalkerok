@@ -1,10 +1,16 @@
 <?php
 
+use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Route;
 
 
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', function () {
+    return view('welcome');
+});
 
-# Админ панель
+Auth::routes();
+
 Route::group(['middleware' => ['role:admin']], function () {
     {   ######## АДМИН-ПАНЕЛЬ ########
         Route::get('/admin/panel', 'AdminController@panel')->name('admin.panel');
@@ -38,23 +44,15 @@ Route::group(['middleware' => ['role:admin']], function () {
     Route::post('/upload', 'AdminController@upload');
 });
 
-Auth::routes();
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
-{
-    # МОДЫ
+{   # МОДЫ
     Route::get('/mods', 'ModsController@modsList')->name('mods.list');
     Route::get('/mods/{url}', 'ModsController@modPage')->name('mod.page');
     Route::post('/mods/review/{id}', 'ModsController@modReview')->name('mod.review');
     Route::post('/mods/comment/{id}', 'ModsController@modComment')->name('mod.comment');
 }
 
-
-# Новости
-Route::get('/news', 'NewsController@newsList')->name('news.list');
-Route::get('/news/{url}', 'NewsController@newPage')->name('new.page');
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+{   # НОВОСТИ
+    Route::get('/news', 'NewsController@newsList')->name('news.list');
+    Route::get('/news/{url}', 'NewsController@newPage')->name('new.page');
+    Route::post('/news/comment/{id}', [NewsController::class, 'newComment'])->name('new.comment');
+}

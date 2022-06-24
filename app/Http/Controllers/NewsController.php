@@ -27,12 +27,11 @@ class NewsController extends Controller
     }
 
     public function newPage($url) {
-        $article = News::where('url', $url)->first();
-        if(!$article) {
-            abort(404);
-        }
-        return view('news.page', [
-            'article' => $article,
-        ]);
+        return News::package($url);
+    }
+
+    public function newComment(Request $request, $id) {
+        News::send($request, $id);
+        return redirect()->back();
     }
 }

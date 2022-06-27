@@ -26,8 +26,8 @@ class NewsController extends Controller
         ]);
     }
 
-    public function newPage($url) {
-        return News::package($url);
+    public function newPage(Request $request, $url) {
+        return News::package($request, $url);
     }
 
     public function newComment(Request $request, $id) {

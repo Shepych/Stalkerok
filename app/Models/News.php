@@ -19,16 +19,26 @@ class News extends Model
 
     # Связь с комментариями
     public function comments() {
-        return $this->hasMany(NewsComments::class, 'new_id');
+        return $this->hasMany(NewsComments::class, 'new_id')->paginate(2);
     }
 
     # Рендер страницы с данными
-    public static function package($url) {
+    public static function package($request, $url) {
         $article = News::where('url', $url)->first();
+
         # Проверка на наличие статьи в базе по URL
         if(!$article) {
             abort(404);
         }
+
+        if(isset($request->page)) {
+            if($request->page > $article->comments()->lastPage() || $request->page <= 0) {
+                abort(404);
+            }
+        }
+
+        # Редирект с '/news/url?page=1' на '/news/url'
+        if($request->page == 1) return redirect('/news/' . $article->url);
 
         return view('news.page', [
             'article' => $article,

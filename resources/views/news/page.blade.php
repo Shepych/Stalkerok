@@ -6,7 +6,7 @@
 
     <div>
         <h3>Комментарии</h3>
-        @foreach($article->comments as $comment)
+        @foreach($article->comments() as $comment)
             <div style="background-color: goldenrod;margin-bottom: 10px">
                 <div style="width: 100px;background-color: green">
                     {{ $comment->user->name }}
@@ -15,6 +15,7 @@
             </div>
         @endforeach
     </div>
+    {{ $article->comments()->links('pagination.classic')}}
 
     <form style="width: 600px" action="{{ route('new.comment', $article->id) }}" method="post">
         @csrf

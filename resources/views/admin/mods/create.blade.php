@@ -17,14 +17,14 @@
         </div>
     @endif
 
-    <form style="display:flex;flex-direction:column;margin-bottom:20px" action="{{ route('mod.store') }}" method="post" enctype="multipart/form-data">
+    <form style="display:flex;flex-direction:column;margin-bottom:20px" action="{{ route('admin.mod.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <label>
             <input type="text" name="title" value="{{ $mod->title }}" placeholder="Название"><br>
             Заголовок
         </label>
 
-        <textarea id="tinymce" name="content" cols="30" rows="10">{{ $mod->content }}</textarea>
+        <textarea id="tinymce" name="content" cols="30" rows="10">{{ $mod->topic()->content()->content }}</textarea>
 
         <label>Обложка <br>
             <input type="file" name="cover">

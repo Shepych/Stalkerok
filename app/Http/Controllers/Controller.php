@@ -11,6 +11,7 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public static $noAuth = 'Авторизируйтесь на сайте';
-    public static $blocked = 'Аккаунт заблокирован';
+    public static $maxReviews = 4;
+    public static $maxComments = 100;
+    public static $maxThemes = 4;
 }

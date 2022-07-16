@@ -21,11 +21,12 @@ function convertTagsFromString($tags) {
 
 # Функция определения цвета отзыва по оценке
 function defineReviewColor($rating) {
-    if($rating < 4) {
-        return 'red';
+    switch ($rating) {
+        case $rating < 4:
+            return 'danger';
+        case $rating < 8:
+            return 'warning';
+        default:
+            return 'success';
     }
-    if($rating < 8) {
-        return 'yellow';
-    }
-    return 'green';
 }

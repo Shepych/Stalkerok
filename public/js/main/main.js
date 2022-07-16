@@ -1,7 +1,6 @@
 // Ajax форма
 $(document).ready(function (){
     $('.ajax__form').submit(function (event) {
-        var json;
         event.preventDefault();
         $.ajax({
             type: $(this).attr('method'),
@@ -10,28 +9,32 @@ $(document).ready(function (){
             contentType: false,
             cache: false,
             processData: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             success: function (result) {
-                json = JSON.parse(result);
-                if(json.message){
+                console.log(result);
+                if(result['message']){
                     Swal.fire({
-                        html: json.message,
-                        icon: 'error',
+                        html: result['message'],
+                        icon: result['message_type'],
                         confirmButtonText: 'Понятно'
                     })
                 }
 
-                if(json.url){
-                    document.location = json.url;
+                if(result['url']){
+                    document.location = result['url'];
                 }
 
-                if(json.dd) {
-                    console.log(json.dd);
+                if(result['dd']) {
+                    console.log(result['dd']);
                 }
             }
         });
     });
 });
 
+// Инициализация текстового редактора
 tinymce.init({
     selector: '#tinymce',
     plugins: 'advlist autolink lists link image charmap preview anchor pagebreak',

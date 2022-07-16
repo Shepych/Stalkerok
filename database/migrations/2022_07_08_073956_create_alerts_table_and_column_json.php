@@ -13,19 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('reviews', function (Blueprint $table) {
+        # ТАБЛИЦА УВЕДОМЛЕНИЙ
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('object_id')
-                ->references('id')
-                ->on('mods');
             $table->foreignId('user_id')
                 ->references('id')
                 ->on('users');
-            $table->string('title')->nullable();
-            $table->integer('rating')->nullable();
             $table->text('content')->nullable();
-            $table->integer('moderation')->nullable();
+            $table->integer('type')->nullable();
+            $table->boolean('general')->nullable();
+            $table->json('addresses')->nullable();
+        });
+
+        # ПОЛЕ С МАССИВОМ ПРОСМОТРЕННЫХ УВЕДОМЛЕНИЙ
+        Schema::table('users', function (Blueprint $table) {
+            $table->json('viewed_notifications')->nullable();
         });
     }
 
@@ -36,6 +39,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('mods_reviews');
+        Schema::dropIfExists('alerts_table_and_column_json');
     }
 };

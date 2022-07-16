@@ -18,8 +18,8 @@
             </div>
 
             <hr>
-            <a href="{{ route('mod.update', $mod->id) }}">Изменить</a>
-            <form action="{{ route('mod.delete', $mod->id) }}" method="post">
+            <a href="{{ route('admin.mod.update', $mod->id) }}">Изменить</a>
+            <form action="{{ route('admin.mod.delete', $mod->id) }}" method="post">
                 @csrf
                 <input type="submit" onclick="return window.confirm('Подтвердите удаление');" value="Удалить">
             </form>

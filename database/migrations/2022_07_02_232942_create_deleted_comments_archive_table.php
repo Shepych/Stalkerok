@@ -14,17 +14,15 @@ return new class extends Migration
 
     public function up()
     {
-        Schema::create('news_comments', function (Blueprint $table) {
+        Schema::create('deleted_comments_archive', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('user_id')
-                ->references('id')
-                ->on('users');
-            $table->foreignId('new_id')
-                ->references('id')
-                ->on('news');
-            $table->text('content');
-            $table->integer('moderation')->nullable();
+            $table->integer('user_id');
+            $table->integer('object_id');
+            $table->text('content')->nullable();
+            $table->string('table')->nullable();
+            $table->integer('moderator_id')->nullable();
+            $table->text('cause')->nullable();
         });
     }
 
@@ -36,6 +34,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('comments');
+        Schema::dropIfExists('deleted_comments_archive');
     }
 };

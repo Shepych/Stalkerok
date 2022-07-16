@@ -1,15 +1,28 @@
 @extends('layouts.main')
 
 @section('content')
-    <h1>Список новостей</h1>
-    @foreach($articles as $article)
-        <a href="{{ route('new.page', $article->url) }}" style="display:flex;flex-direction: column;justify-content: center;align-items: center; margin-bottom: 20px;width: 400px;background-color: #4a5568;border-radius: 10px;padding: 20px;">
-            <h3 style="margin-top: 0;color: white">{{ $article->title }}</h3>
-            <img src="{{ $article->img }}" width="200px">
-        </a>
-    @endforeach
+    <div class="d-flex justify-content-center align-items-center align-content-center flex-column mb-4">
+        <h1 class="mt-4">Список новостей</h1>
+        <div class="container d-flex justify-content-center align-content-center">
+            @foreach($articles as $article)
+                <a class="m-2" style="display: inline-block" href="{{ route('new.page', $article->url) }}">
+                    <div class="card" style="height: 300px;width: 18rem;">
+                        <img src="{{ $article->img }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $article->title }}</h5>
+                            <div class="btn btn-primary">Читать</div>
+                        </div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
 
-    <div>
-        {{ $articles->links('pagination.classic') }}
+        <div>
+            {{ $articles->links('pagination.classic') }}
+        </div>
     </div>
+@endsection
+
+@section('js')
+    <script src="/js/main/main.js"></script>
 @endsection

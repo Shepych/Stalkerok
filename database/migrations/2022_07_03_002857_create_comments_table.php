@@ -11,20 +11,20 @@ return new class extends Migration
      *
      * @return void
      */
-
     public function up()
     {
-        Schema::create('news_comments', function (Blueprint $table) {
+        Schema::create('comments', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->foreignId('user_id')
                 ->references('id')
                 ->on('users');
-            $table->foreignId('new_id')
-                ->references('id')
-                ->on('news');
-            $table->text('content');
-            $table->integer('moderation')->nullable();
+            $table->longText('content')->nullable();
+            $table->boolean('topic_content')->default(FALSE);
+            $table->json('rating')->nullable();
+            $table->string('type')->nullable();
+            $table->integer('moderator_id')->nullable();
+            $table->boolean('moderation')->nullable();
         });
     }
 
@@ -33,7 +33,6 @@ return new class extends Migration
      *
      * @return void
      */
-
     public function down()
     {
         Schema::dropIfExists('comments');

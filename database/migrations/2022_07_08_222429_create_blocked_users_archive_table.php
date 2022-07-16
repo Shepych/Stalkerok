@@ -11,20 +11,18 @@ return new class extends Migration
      *
      * @return void
      */
-
     public function up()
     {
-        Schema::create('news_comments', function (Blueprint $table) {
+        Schema::create('blocked_users_archive', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->foreignId('moderator_id')
+                ->references('id')
+                ->on('users');
             $table->foreignId('user_id')
                 ->references('id')
                 ->on('users');
-            $table->foreignId('new_id')
-                ->references('id')
-                ->on('news');
-            $table->text('content');
-            $table->integer('moderation')->nullable();
+            $table->text('cause');
         });
     }
 
@@ -33,9 +31,8 @@ return new class extends Migration
      *
      * @return void
      */
-
     public function down()
     {
-        Schema::dropIfExists('comments');
+        Schema::dropIfExists('blocked_users_archive');
     }
 };

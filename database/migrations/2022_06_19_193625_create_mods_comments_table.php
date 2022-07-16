@@ -23,6 +23,7 @@ return new class extends Migration
                 ->references('id')
                 ->on('mods');
             $table->text('content')->nullable();
+            $table->integer('moderation')->nullable();
         });
     }
 

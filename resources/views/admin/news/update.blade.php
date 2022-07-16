@@ -19,10 +19,10 @@
         </div>
     @endif
 
-    <form action="{{ route('new.update', $article->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.new.update', $article->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="text" name="title" placeholder="Заголовок" value="{{ $article->title }}"><br>
-        <textarea name="content" id="tinymce" cols="30" rows="10">{{ $article->content }}</textarea><br>
+        <textarea name="content" id="tinymce" cols="30" rows="10">{{ $article->topic()->content()->content }}</textarea><br>
         <img src="{{ $article->img }}" width="200px" alt="">
         <input type="file" name="cover"><br>
         <input type="submit" value="Сохранить изменения">

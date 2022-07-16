@@ -3,35 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
+use http\Url;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 class NewsController extends Controller
 {
+    # Страница «Список статей»
     public function newsList(Request $request) {
-        $articles = News::where('published', true)->orderByDesc('id')->paginate(2);
-
-        if(isset($request->page)) {
-            if($request->page > $articles->lastPage() || $request->page <= 0) {
-                abort(404);
-            }
-        }
-
-        # Редирект с '/news?page=1 на '/news'
-        if($request->page ==  1) {
-            return redirect('/news');
-        }
-
-        return view('news.list', [
-            'articles' => $articles,
-        ]);
+        return News::packageList($request);
     }
 
+    # Страница «Статья»
     public function newPage(Request $request, $url) {
         return News::package($request, $url);
     }
 
+    # Комментирование статьи
     public function newComment(Request $request, $id) {
-        News::send($request, $id);
-        return redirect()->back();
+        return News::send($request, $id);
     }
 }

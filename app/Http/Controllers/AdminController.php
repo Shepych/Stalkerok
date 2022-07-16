@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\Comments;
+use App\Models\Forum;
 use App\Models\Mods;
 use App\Models\ModsImages;
 use App\Models\News;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -38,7 +41,25 @@ class AdminController extends Controller
 
         # Создаём не заполненную статью
         if(!$article) {
+            # Создаём топик на форуме + комментарий
+            # Топик
+            $topic = new Forum();
+            $topic->user_id = Auth::id();
+            $topic->type = 'new';
+            $topic->hidden = TRUE;
+            $topic->save();
+
+            # Комментарий
+            $comment = new Comments();
+            $comment->user_id = Auth::id();
+            $comment->topic_content = TRUE;
+            $comment->object_id = $topic->id;
+            $comment->type = 'new';
+            $comment->save();
+
+            # Новость
             $article = new News();
+            $article->topic_id = $topic->id;
             $article->save();
         }
 
@@ -71,9 +92,7 @@ class AdminController extends Controller
                 File::makeDirectory($newDir . '/' . $article->id);
             } else {
                 # А если нет перегрузки файлов, то проверяем есть ли уже папка с id
-//            if(!File::exists('storage/news/'. $folder . '/' . $article->id) == false) {
                 File::makeDirectory('storage/news/' . $folder . '/' . $article->id);
-//            }
             }
         }
 
@@ -91,8 +110,18 @@ class AdminController extends Controller
         # Сохраняем данные чтобы не сбросились после валидации
         $new = News::where('published', false)->first();
         $new->title = $request->input('title');
-        $new->content = $request->input('content');
         $new->save();
+
+        # Обновление топика
+        $topic = $new->topic();
+        $topic->title = $request->input('title');
+        $topic->save();
+
+        # Обновление контента
+        $content = $new->topic()->content();
+        $content->content = $request->input('content');
+        $content->save();
+
         # Валидация данных
         Validator::make($request->all(), [
             'title' => 'required|max:255',
@@ -118,7 +147,15 @@ class AdminController extends Controller
         # Добавляем статью и загружаем обложку
         $new->title = $request->input('title');
         $new->url = Str::slug($request->input('title'));
-        $new->content = $request->input('content');
+
+        # Обновить заголовок топика и URL
+        $topic->title = $request->input('title');
+        $topic->url =  Str::slug($request->input('title'));
+        $topic->save();
+        # Обновить контент сообщения
+        $content->content = $request->input('content');
+        $content->save();
+
         $new->date_time = date("Y-m-d H:i:s");
         $new->img = '/storage/' . str_replace('public/','', $request->file('cover')->store($path));
         $new->published = true;
@@ -135,6 +172,8 @@ class AdminController extends Controller
     {
         # Проверка наличия статьи в базе
         $article = News::where('id', $id)->first();
+        $article->content = $article->topic()->content()->content;
+
         if (!$article) {
             abort(404);
         }
@@ -163,9 +202,13 @@ class AdminController extends Controller
 
             # Обновляем данные
             $article->title = $request->input('title');
-            $article->content = $request->input('content');
             $article->img = $path;
             $article->save();
+
+            # Обновляем контент у комментария
+            $content = $article->topic()->content();
+            $content->content = $request->input('content');
+            $content->save();
 
             # Чистка неиспользуемых картинок в content
             Admin::clearDirImages(Storage::files($pathToSave), $article, $request->input('content'));
@@ -182,8 +225,11 @@ class AdminController extends Controller
     # Удаление новости
     public function newDelete($id) {
         $new = News::where('id', $id)->first();
+        $topic = $new->topic();
         Storage::deleteDirectory('public/news/' . $new->folder . '/' . $new->id);
         $new->delete();
+        # Удаляем топик а за ним каскадом и комментарии
+        $topic->delete();
         return redirect()->back()->withSuccess('Статья удалена');
     }
 
@@ -247,7 +293,25 @@ class AdminController extends Controller
 
         # Если пустая запись не найдена - то создаём её
         if(!isset($mod)) {
+            # Создаём топик на форуме + комментарий
+            # Топик
+            $topic = new Forum();
+            $topic->user_id = Auth::id();
+            $topic->type = 'mod';
+            $topic->hidden = TRUE;
+            $topic->save();
+
+            # Комментарий
+            $comment = new Comments();
+            $comment->user_id = Auth::id();
+            $comment->topic_content = TRUE;
+            $comment->object_id = $topic->id;
+            $comment->type = 'mod';
+            $comment->save();
+
+            # Мод
             $mod = new Mods();
+            $mod->topic_id = $topic->id;
             $mod->save();
         }
 
@@ -299,7 +363,18 @@ class AdminController extends Controller
         # Сохранить данные в запись чтобы они не сбросились после валидации
         $mod = Mods::where('published', false)->first();
         $mod->title = $request->input('title');
-        $mod->content = $request->input('content');
+
+        # Обновление топика
+        $topic = $mod->topic();
+        $topic->title = $request->input('title');
+        $topic->url =  Str::slug($request->input('title'));
+        $topic->save();
+
+        # Обновление контента
+        $content = $mod->topic()->content();
+        $content->content = $request->input('content');
+        $content->save();
+
         # Формирование тегов в строку через хелпеп
         $mod->tags = convertTagsToString($request->input('tags'));
         $mod->platform = $request->input('platform');
@@ -366,6 +441,8 @@ class AdminController extends Controller
     public function modUpdate(Request $request, $id) {
         # Проверка наличия статьи в базе
         $mod = Mods::where('id', $id)->first();
+        $mod->content = $mod->topic()->content()->content;
+
         if (!$mod) {
             abort(404);
         }
@@ -376,17 +453,12 @@ class AdminController extends Controller
             Validator::make($request->all(), [
                 'title' => 'required|min:3',
                 'content' => 'required',
-//                'cover' => 'required',
-//                'screenshots' => 'required',
                 'tags' => 'required',
                 'platform' => 'required',
             ],[
                 'title.required' => 'Заголовок не заполнен',
                 'title.min' => 'Заголовок должен содержать минимум 3 символа',
                 'content.required' => 'Контент отсутствует',
-//                'cover.required' => 'Обложка отсутствует',
-//                'screenshots.required' => 'Скриншоты отсутствуют',
-//                'screenshots.min' => 'Минимум 4 скриншота',
                 'tags.required' => 'Должен быть минимум один тэг',
                 'platform.required' => 'Платформа не выбрана',
             ])->validateWithBag('post');
@@ -423,6 +495,17 @@ class AdminController extends Controller
             # Обновляем данные
             $mod->title = $request->input('title');
             $mod->content = $request->input('content');
+
+            # Обновляем заголовок у топика
+            $topic = $mod->topic();
+            $topic->title = $mod->title;
+            $topic->save();
+
+            # Обновляем контент у комментария
+            $content = $mod->topic()->content();
+            $content->content = $request->input('content');
+            $content->save();
+
             # Формирование тегов в строку через хелпеп
             $mod->tags = convertTagsToString($request->input('tags'));
             $mod->platform = $request->input('platform');
@@ -453,8 +536,12 @@ class AdminController extends Controller
     # Удаление мода
     public function modDelete($id) {
         $mod = Mods::where('id', $id)->first();
+        $topic = $mod->topic();
         Storage::deleteDirectory('public/mods/' . $mod->folder . '/' . $mod->id);
         $mod->delete();
+
+        # Удаляем топик а за ним каскадом и комментарии
+        $topic->delete();
         return redirect()->back()->withSuccess('Мод удалён');
     }
 }

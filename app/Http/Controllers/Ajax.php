@@ -7,16 +7,16 @@ use phpDocumentor\Reflection\Types\This;
 
 class Ajax extends Controller
 {
-    public static function message($message) {
-        return json_encode(['message' => $message], JSON_UNESCAPED_UNICODE);
+    public static function message($message, $success = false) {
+        return response()->json(['message' => $message, 'message_type' => self::messageType($success)]);
     }
 
     public static function dd($obj) {
-        return json_encode(['dd' => $obj], JSON_UNESCAPED_UNICODE);
+        return response()->json(['dd' => $obj]);
     }
 
     public static function redirect($url) {
-        return json_encode(['url' => $url], JSON_UNESCAPED_UNICODE);
+        return response()->json(['url' => $url]);
     }
 
     public static function valid($validate) {
@@ -31,6 +31,21 @@ class Ajax extends Controller
         }
 
         $validateMessage.= '</ul>';
-        return json_encode(['message' => $validateMessage], JSON_UNESCAPED_UNICODE);
+        return response()->json(['message' => $validateMessage, 'message_type' => self::messageType()], JSON_UNESCAPED_UNICODE);
+    }
+
+    public static function messageType($success = false) {
+        switch ($success) {
+            case true:
+                $messageType = 'success';
+                break;
+            case false:
+                $messageType = 'error';
+                break;
+            default:
+                $messageType = 'error';
+        }
+
+        return $messageType;
     }
 }

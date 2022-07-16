@@ -1,20 +1,24 @@
 <?php
 
+use App\Http\Controllers\ForumController;
 use App\Http\Controllers\NewsController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/pda/{id}', [App\Http\Controllers\HomeController::class, 'profile'])->name('home');
+Route::middleware(['auth'])->get('/notifications', [App\Http\Controllers\HomeController::class, 'notifications'])->name('notifications');
+Route::middleware(['auth'])->get('/settings', [App\Http\Controllers\HomeController::class, 'settings'])->name('settings');
+
+
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
 
 Auth::routes();
 
-Route::group(['middleware' => ['role:admin']], function () {
+Route::middleware(['role:admin'])->name('admin.')->group( function () {
     {   ######## АДМИН-ПАНЕЛЬ ########
-        Route::get('/admin/panel', 'AdminController@panel')->name('admin.panel');
-        Route::get('/admin/panel/news', 'AdminController@newsList')->name('admin.news.list');
+        Route::get('/admin/panel', 'AdminController@panel')->name('panel');
+        Route::get('/admin/panel/news', 'AdminController@newsList')->name('news.list');
     }
 
     {   ######## НОВОСТИ ########
@@ -29,7 +33,7 @@ Route::group(['middleware' => ['role:admin']], function () {
 
     {   ######## МОДЫ ########
         # Список модов
-        Route::get('/admin/panel/mods', 'AdminController@modsList')->name('admin.mods.list');
+        Route::get('/admin/panel/mods', 'AdminController@modsList')->name('mods.list');
         # Страница создания мода
         Route::get('/admin/panel/create/mod', 'AdminController@modCreate')->name('mod.create');
         # Обработчик создания мода
@@ -47,12 +51,41 @@ Route::group(['middleware' => ['role:admin']], function () {
 {   # МОДЫ
     Route::get('/mods', 'ModsController@modsList')->name('mods.list');
     Route::get('/mods/{url}', 'ModsController@modPage')->name('mod.page');
-    Route::post('/mods/review/{id}', 'ModsController@modReview')->name('mod.review');
-    Route::post('/mods/comment/{id}', 'ModsController@modComment')->name('mod.comment');
 }
 
 {   # НОВОСТИ
     Route::get('/news', 'NewsController@newsList')->name('news.list');
     Route::get('/news/{url}', 'NewsController@newPage')->name('new.page');
-    Route::post('/news/comment/{id}', [NewsController::class, 'newComment'])->name('new.comment');
 }
+
+{   # ФОРУМ
+    Route::get('/forum', 'ForumController@forum')->name('forum');
+    Route::get('/forum/{url}', 'ForumController@topic')->name('topic');
+    Route::get('/forum/topic/create', [ForumController::class, 'createTopic'])->name('topic.create');
+}
+
+{   # МАГАЗИН
+    Route::get('/store', 'StoreController@store')->name('store');
+}
+
+
+Route::group(['middleware' => ['guest_or_blocked']], function () {
+    {   ######## Возможности пользователя ########
+        Route::post('/mods/review/{id}', 'ModsController@modReview')->name('mod.review');
+        Route::post('/mods/comment/{id}', 'ModsController@modComment')->name('mod.comment');
+        Route::post('/news/comment/{id}', [NewsController::class, 'newComment'])->name('new.comment');
+        Route::post('/forum/topic/create', [ForumController::class, 'createTopic'])->name('topic.create');
+        Route::post('/forum/topic/comment/{id}', [ForumController::class, 'sendComment'])->name('topic.comment');
+    }
+});
+
+Route::middleware(['guest_or_blocked', 'moderator'])->name('moderator.')->group(function () {
+    {   ######## ФУНКЦИОНАЛ МОДЕРАТОРА ########
+        Route::post('/moderator/comment', 'ModeratorController@comment')->name('comment');
+        Route::post('/moderator/review', 'ModeratorController@review')->name('review');
+        Route::post('/moderator/block/{id}', 'ModeratorController@block')->name('block');
+        Route::post('/moderator/unblock/{id}', 'ModeratorController@unblock')->name('unblock');
+    }
+});
+
+

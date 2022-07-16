@@ -13,12 +13,12 @@ tinymce.init({
         });
     },
     plugins: [
-        "advlist autolink lists link image charmap print preview anchor",
+        "advcode advlist autolink lists link image charmap print preview anchor",
         "searchreplace visualblocks code fullscreen",
         "insertdatetime media table contextmenu paste imagetools"
     ],
-    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image ",
-
+    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code",
+    content_css: '/css/app.css',
     image_title: true,
     automatic_uploads: true,
     images_upload_url: '/upload',
@@ -44,3 +44,25 @@ tinymce.init({
         input.click();
     }
 });
+
+function addCode() {
+  let content = $('#code_content').val();
+  var myContent = tinymce.activeEditor.getContent();
+  let accordion = '<div class="accordion" id="accordionExample">'+
+  '<div class="accordion-item">'+
+  '<h2 class="accordion-header" id="headingTwo">'+
+    '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">'+
+      'Accordion Item #2'+
+    '</button>'+
+  '</h2>'+
+  '<div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">'+
+    '<div class="accordion-body">'+
+      '<strong>This is the second items accordion body.</strong>overflow.'+
+    '</div>'+
+  '</div>'+
+'</div>'+
+  '</div>';
+
+  let button = '<button type="button" class="btn btn-secondary">Secondary</button><br>'
+  tinymce.activeEditor.setContent(myContent + content + '<br>');
+}

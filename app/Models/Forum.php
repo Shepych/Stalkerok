@@ -50,7 +50,7 @@ class Forum extends Model
 
     # Связь с комментариями
     public function comments() {
-        return $this->hasMany(Comments::class, 'object_id')->paginate(4);
+        return $this->hasMany(Comments::class, 'object_id')->where('topic_content', FALSE)->paginate(4);
     }
 
     # Связь с контентом

@@ -39,13 +39,15 @@ class Ajax extends Controller
             case true:
                 $messageType = 'success';
                 break;
-            case false:
-                $messageType = 'error';
-                break;
             default:
                 $messageType = 'error';
         }
 
         return $messageType;
+    }
+
+    # Вывод шаблона
+    public static function layout($layout, $object_id = NULL) {
+        return response()->json(['layout' => $layout, 'ajax_object_id' => $object_id], JSON_UNESCAPED_UNICODE);
     }
 }

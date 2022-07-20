@@ -373,6 +373,7 @@ class AdminController extends Controller
         # Обновление контента
         $content = $mod->topic()->content();
         $content->content = $request->input('content');
+        $content->topic_content = TRUE;
         $content->save();
 
         # Формирование тегов в строку через хелпеп

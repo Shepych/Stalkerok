@@ -13,6 +13,7 @@ class Notification extends Model
     use HasFactory;
 
     protected static $type = 'default';
+
     protected static $count = 0;
 
     # СПИСОК УВЕДОМЛЕНИЙ
@@ -84,6 +85,15 @@ class Notification extends Model
             case 3:
                 $content = 'Ваш аккаунт заблокирован';
                 break;
+            case 4:
+                $content = 'Ваш комментарий в <a href="' . route('topic', $array['url']) . '">теме</a> был удалён';
+                break;
+            case 5:
+                $content = 'Ваш отзыв для <a href="' . route('mod', $array['url']) . '">мода</a> был удалён';
+                break;
+            case 6:
+                $content = 'Ваша тема «' . $array['title'] . '» была удалена';
+                break;
         }
 
         # Отправляем запись в БД
@@ -98,6 +108,7 @@ class Notification extends Model
         Notification::insert($notification);
     }
 
+    # Глобальное уведомление
     public static function general($content) {
         # Отправляем запись в БД от лица админа
         $notification = [

@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->boolean('closed')->default(FALSE);
             $table->boolean('hidden')->default(FALSE);
+            $table->boolean('fixed')->default(FALSE);
+            $table->integer('moderator_id')->nullable();
+            $table->boolean('moderation')->nullable();
         });
 
         # КЛЮЧ ТОПИКА ДЛЯ КОММЕНТАРИЕВ

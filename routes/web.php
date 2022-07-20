@@ -1,17 +1,17 @@
 <?php
 
 use App\Http\Controllers\ForumController;
+use App\Http\Controllers\MainController;
 use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/pda/{id}', [App\Http\Controllers\HomeController::class, 'profile'])->name('home');
-Route::middleware(['auth'])->get('/notifications', [App\Http\Controllers\HomeController::class, 'notifications'])->name('notifications');
-Route::middleware(['auth'])->get('/settings', [App\Http\Controllers\HomeController::class, 'settings'])->name('settings');
+Route::middleware(['auth'])->get('/pda/notifications', [App\Http\Controllers\HomeController::class, 'notifications'])->name('notifications');
+Route::middleware(['auth'])->get('/pda/settings', [App\Http\Controllers\HomeController::class, 'settings'])->name('settings');
+Route::get('/pda/{id}', [MainController::class, 'profile'])->name('profile');
 
-
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
+Route::get('/', [MainController::class, 'index'])->name('index');
 
 Auth::routes();
 
@@ -81,10 +81,12 @@ Route::group(['middleware' => ['guest_or_blocked']], function () {
 
 Route::middleware(['guest_or_blocked', 'moderator'])->name('moderator.')->group(function () {
     {   ######## ФУНКЦИОНАЛ МОДЕРАТОРА ########
-        Route::post('/moderator/comment', 'ModeratorController@comment')->name('comment');
-        Route::post('/moderator/review', 'ModeratorController@review')->name('review');
+        Route::post('/moderator/comment/{id}', 'ModeratorController@comment')->name('comment');
+        Route::post('/moderator/topic/{id}', 'ModeratorController@topic')->name('topic');
+        Route::post('/moderator/review/{id}', 'ModeratorController@review')->name('review');
         Route::post('/moderator/block/{id}', 'ModeratorController@block')->name('block');
         Route::post('/moderator/unblock/{id}', 'ModeratorController@unblock')->name('unblock');
+        Route::post('/moderator/user/search', 'ModeratorController@userSearch')->name('user.search');
     }
 });
 

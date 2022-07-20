@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Archive;
 use App\Models\Comments;
+use App\Models\Forum;
+use App\Models\Moderator;
 use App\Models\ModsComments;
 use App\Models\NewsComments;
 use App\Models\Notification;
 use App\Models\Reviews;
 use App\Models\User;
+use BaconQrCode\Common\Mode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Expr\AssignOp\Mod;
 
 class ModeratorController extends Controller
 {
@@ -23,34 +28,10 @@ class ModeratorController extends Controller
     public static function generate() {
         # Проверка на наличие модерки
         if(Auth::user()->hasRole('moderator')) {
-            # Берём КОММЕНТАРИЙ уже модерируемый данным пользователем
-            $comment = Comments::where('moderation', Auth::id())->orderByDesc('updated_at')->first();
-            # Если такого нет - то берём свободный и присваимваем ему ID `moderation`
-            if(!$comment) {
-                $comment = Comments::where('moderation', null)
-                    ->where('user_id', '!=', 1)
-                    ->where('type', '!=', 'new')
-                    ->where('type', '!=', 'mod')
-                    ->orderByDesc('updated_at')
-                    ->first();
-                if($comment) {
-                    $comment->moderation = Auth::id();
-                    $comment->save();
-                }
-            }
-
-            # Берём ОТЗЫВ уже модерируемый данным пользователем
-            $review = Reviews::where('moderation', Auth::id())->orderByDesc('updated_at')->first();
-            # Если такого нет - то берём свободный и присваимваем ему ID `moderation`
-            if(!$review) {
-                $review = Reviews::where('moderation', null)->orderByDesc('updated_at')->first();
-                if($review) {
-                    $review->moderation = Auth::id();
-                    $review->save();
-                }
-            }
-
-            $result = ['comment' => $comment, 'review' => $review];
+            $comment = Moderator::generateComment();
+            $topic = Moderator::generateTopic();
+            $review = Moderator::generateReview();
+            $result = ['comment' => $comment, 'review' => $review, 'topic' => $topic];
         } else {
             $result = false;
         }
@@ -60,22 +41,103 @@ class ModeratorController extends Controller
 
     # ОБРАБОТКА КОММЕНТАРИЯ
     public function comment(Request $request, $id) {
-        # Если Auth ID != moderator_id - выдаём ошибку
-        return true;
+        # Проверка доступа
+        if(!Comments::where('moderation', Auth::id())->first()) {
+            $comment = Moderator::generateComment();
+            return Ajax::layout(view('ajax.moderator.next_comment', compact('comment'))->render(), 'comment');
+        }
+
+        # Пропуск
+        if($request->input('next')) {
+            # Обновить запись и вернуть Ajax комментарий
+            $comment = Moderator::commentNext($id);
+            return Ajax::layout(view('ajax.moderator.next_comment', compact('comment'))->render(), 'comment');
+        }
+
+        # Удаление
+        if($request->input('delete')) {
+            # Валидация + обработка
+            $archive = new Archive(Archive::$comment);
+            if(!$archive->archiving($request, $id)){
+                return Ajax::valid(Archive::$error);
+            }
+
+            # Отправить в шаблон либо пустоту либо комментарий и обновить в БД moderation
+            $comment = Moderator::noModerateComment();
+
+            # Аякс следующего комментария
+            return Ajax::layout(view('ajax.moderator.next_comment', compact('comment'))->render(), 'comment');
+        }
+
+        return abort(404);
+    }
+
+    # ОБРАБОТКА ТОПИКА
+    public function topic(Request $request, $id) {
+        # Проверка доступа
+        if(!Forum::where('moderation', Auth::id())->first()) {
+            return Ajax::message("Нет доступа");
+        }
+
+        # Пропуск
+        if($request->input('next')) {
+            # Обновить запись и вернуть Ajax комментарий
+            $topic = Moderator::topicNext($id);
+            return Ajax::layout(view('ajax.moderator.next_topic', compact('topic'))->render(), 'topic');
+        }
+
+        # Удаление
+        if($request->input('delete')) {
+            # Валидация + обработка
+            $archive = new Archive(Archive::$topic);
+            if(!$archive->archiving($request, $id)){
+                return Ajax::valid(Archive::$error);
+            }
+
+            # Отправить в шаблон либо пустоту либо комментарий и обновить в БД moderation
+            $topic = Moderator::noModerateTopic();
+
+            # Аякс следующего комментария
+            return Ajax::layout(view('ajax.moderator.next_topic', compact('topic'))->render(), 'topic');
+//            return Ajax::message('123123');
+        }
+
+        return abort(404);
     }
 
     # ОБРАБОТКА ОТЗЫВА
     public function review(Request $request, $id) {
-//        return true;
-        if($request->input('next')) {
-            return Ajax::message('next');
+        # Проверка доступа
+        if(!Reviews::where('moderation', Auth::id())->first()) {
+            return Ajax::message("Нет доступа");
         }
 
-        if($request->input('delete')) {
-            return Ajax::message('Удаление');
+        # Пропуск
+        if ($request->input('next')) {
+            $review = Moderator::reviewNext($id);
+            return Ajax::layout(view('ajax.moderator.next_review', compact('review'))->render(), 'review');
+        }
+
+        # Удаление
+        if ($request->input('delete')) {
+            # Валидация + обработка
+            $archive = new Archive(Archive::$review);
+            if(!$archive->archiving($request, $id)){
+                return Ajax::valid(Archive::$error);
+            }
+
+            # Отправить в шаблон следующий отзыв
+            $review = Moderator::noModerateReview();
+
+            # Аякс следующего комментария
+            return Ajax::layout(view('ajax.moderator.next_review', compact('review'))->render(), 'comment');
         }
 
         return abort(404);
+    }
+
+    public function userSearch(Request $request) {
+        return Ajax::message('Поиск юзера: '. $request->input('login'));
     }
 
     # БЛОКИРОВКА ПОЛЬЗОВАТЕЛЯ

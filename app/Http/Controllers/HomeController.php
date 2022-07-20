@@ -24,32 +24,6 @@ class HomeController extends Controller
      * @return \Illuminate\Contracts\Support\Renderable
      */
 
-    # СТРАНИЦА ПРОФИЛЯ
-    public function profile($id) {
-        $pda = User::where('id', $id)->first();
-
-        if(!$pda) {
-            abort(404);
-        }
-
-        $moderation = ModeratorController::generate();
-        $notifications = Notification::count();
-
-        return view('user.home', [
-            'moderation' => $moderation,
-            'notifications' => $notifications,
-            'pda' => $pda,
-            'activePage' => 'profile',
-        ]);
-    }
-
-    # ГЛАВНАЯ СТРАНИЦА
-    public function index() {
-        return view('index', [
-            'activePage' => 'index',
-        ]);
-    }
-
     # СПИСОК УВЕДОМЛЕНИЙ
     public function notifications() {
         # Когда переходим на эту страницу - производим все вычисления

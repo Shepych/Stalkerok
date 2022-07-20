@@ -77,6 +77,17 @@
                                 {!! $moderation['comment']->content !!}
                                 {{ $moderation['comment']->updated_at }}
                             </div>
+
+                            <form class="ajax__form" action="{{ route('moderator.comment', $moderation['comment']->id) }}" method="post">
+                                @csrf
+                                <div class="d-flex justify-content-center flex-row mt-4">
+                                    <button name="delete" value="true" onclick="return confirm('Точно удалить ?')" style="margin-right: 25px" type="submit" class="btn btn-secondary btn-lg ">Удалить</button>
+                                    <button name="next" value="true" type="submit" class="btn btn-primary btn-lg">Следующий</button>
+                                </div>
+                                <div class="mt-4">
+                                    <textarea name="cause" placeholder="Причина удаления" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                                </div>
+                            </form>
                         @else
                             Новые комментарии отсутствуют
                         @endif
@@ -84,20 +95,20 @@
                     </div>
                     <div class="tab-pane fade p-4" id="topic" role="tabpanel" aria-labelledby="profile-tab">
                         @if(isset($moderation['topic']))
-                            <div class="alert alert-{{ defineReviewColor($moderation['review']->rating) }} mb-0" role="alert">
-                                Login: {{ $moderation['review']->user->name }}<br>
+                            <div class="alert alert-dark mb-0" role="alert">
+                                Login: {{ $moderation['topic']->author()->name }}<br>
                                 <hr>
-                                {!! $moderation['review']->content !!}
-                                {{ $moderation['review']->updated_at }}
+                                {!! $moderation['topic']->content()->content !!}
+                                {{ $moderation['topic']->updated_at }}
                             </div>
-                            <form class="ajax__form" action="{{ route('moderator.review') }}" method="post">
+                            <form class="ajax__form" action="{{ route('moderator.topic', $moderation['topic']->id) }}" method="post">
                                 @csrf
                                 <div class="d-flex justify-content-center flex-row mt-4">
-                                    <button name="delete" value="true" style="margin-right: 25px" type="submit" class="btn btn-secondary btn-lg ">Удалить</button>
+                                    <button onclick="return confirm('Точно удалить ?')" name="delete" value="true" style="margin-right: 25px" type="submit" class="btn btn-secondary btn-lg ">Удалить</button>
                                     <button name="next" value="true" type="submit" class="btn btn-primary btn-lg">Следующий</button>
                                 </div>
                                 <div class="mt-4">
-                                    <textarea name="cause" placeholder="Причина удаления" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                                    <textarea name="cause" placeholder="Причина удаления" class="form-control" rows="3"></textarea>
                                 </div>
                             </form>
                         @else
@@ -112,14 +123,14 @@
                                 {!! $moderation['review']->content !!}
                                 {{ $moderation['review']->updated_at }}
                             </div>
-                            <form class="ajax__form" action="{{ route('moderator.review') }}" method="post">
+                            <form class="ajax__form" action="{{ route('moderator.review', $moderation['review']->id) }}" method="post">
                                 @csrf
                                 <div class="d-flex justify-content-center flex-row mt-4">
-                                    <button name="delete" value="true" style="margin-right: 25px" type="submit" class="btn btn-secondary btn-lg ">Удалить</button>
+                                    <button onclick="return confirm('Точно удалить ?')" name="delete" value="true" style="margin-right: 25px" type="submit" class="btn btn-secondary btn-lg ">Удалить</button>
                                     <button name="next" value="true" type="submit" class="btn btn-primary btn-lg">Следующий</button>
                                 </div>
                                 <div class="mt-4">
-                                    <textarea name="cause" placeholder="Причина удаления" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                                    <textarea name="cause" placeholder="Причина удаления" class="form-control" rows="3"></textarea>
                                 </div>
                             </form>
                         @else
@@ -127,10 +138,13 @@
                         @endif
                     </div>
                     <div class="tab-pane fade p-4" id="users" role="tabpanel" aria-labelledby="profile-tab">
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">@</span>
-                            <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>
+                        <form class="ajax__form" action="{{ route('moderator.user.search') }}" method="POST">
+                            @csrf
+                            <div class="input-group mb-3">
+                                <span class="input-group-text" id="basic-addon1">@</span>
+                                <input type="text" name="login" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                            </div>
+                        </form>
 
                         <div class="d-flex">
                             <img src="/storage/avatars/avatar.jpg" class="img-thumbnail w-25" alt="...">

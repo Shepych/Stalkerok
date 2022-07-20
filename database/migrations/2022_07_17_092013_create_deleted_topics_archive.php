@@ -13,16 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('deleted_reviews_archive', function (Blueprint $table) {
+        Schema::create('deleted_topics_archive', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->integer('object_id');
+            $table->string('url')->nullable();
+            $table->string('title')->nullable();
             $table->foreignId('user_id')
                 ->references('id')
                 ->on('users');
-            $table->string('title')->nullable();
-            $table->integer('rating')->nullable();
-            $table->text('content')->nullable();
+            $table->string('type')->nullable();
+            $table->boolean('closed')->nullable();
+            $table->boolean('hidden')->nullable();
             $table->foreignId('moderator_id')
                 ->references('id')
                 ->on('users');
@@ -37,6 +38,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('deleted_reviews_archive');
+        Schema::dropIfExists('deleted_topics_archive');
     }
 };

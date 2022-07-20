@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->integer('rating')->nullable();
             $table->text('content')->nullable();
+            $table->integer('moderator_id')->nullable();
             $table->integer('moderation')->nullable();
         });
     }
@@ -36,6 +37,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('mods_reviews');
+//        Schema::dropIfExists('mods_reviews');
     }
 };

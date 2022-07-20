@@ -7,7 +7,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Главная</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('home', Auth::id()) }}">Профиль</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('profile', Auth::id()) }}">Профиль</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Уведомления</li>
                     </ol>
                 </nav>

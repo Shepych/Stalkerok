@@ -13,4 +13,9 @@ class Comments extends Model
     public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    # Связь с топиком
+    public function topic() {
+        return $this->hasOne(Forum::class, 'id', 'object_id')->first();
+    }
 }

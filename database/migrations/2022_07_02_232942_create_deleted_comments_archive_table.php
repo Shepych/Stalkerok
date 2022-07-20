@@ -17,11 +17,15 @@ return new class extends Migration
         Schema::create('deleted_comments_archive', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->integer('user_id');
+            $table->foreignId('user_id')
+                ->references('id')
+                ->on('users');
             $table->integer('object_id');
             $table->text('content')->nullable();
             $table->string('table')->nullable();
-            $table->integer('moderator_id')->nullable();
+            $table->foreignId('moderator_id')
+                ->references('id')
+                ->on('users');
             $table->text('cause')->nullable();
         });
     }

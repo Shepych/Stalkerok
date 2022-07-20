@@ -1,3 +1,4 @@
+{{--{{ dd(request()->is('news')) }}--}}
 <!doctype html>
 <html lang="ru">
 <head>
@@ -12,7 +13,7 @@
 
 <body>
     <main id="panel">
-        <div class="container">
+        <div class="container ajax__wrap">
             @include('blocks.main.header')
 
             @yield('content')
@@ -22,7 +23,7 @@
     </main>
 
     <script src="/js/app.js"></script>
-    <script>$('[data-active={{ $activePage }}]').addClass('active')</script>
+{{--    <script>$('[data-active={{ $activePage }}]').addClass('active')</script>--}}
     @yield('js')
 </body>
 </html>

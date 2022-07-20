@@ -5,7 +5,7 @@
         <div class="d-flex flex-column justify-content-center align-items-center">
             <h1 class="m-4 mb-0">{{ $topic->title }}</h1>
             <i>{{ $topic->created_at }}</i>
-            <a href="{{ route('home', $topic->author()->id) }}"><i class="mb-4">{{ $topic->author()->name }}</i></a>
+            <a href="{{ route('profile', $topic->author()->id) }}"><i class="mb-4">{{ $topic->author()->name }}</i></a>
         </div>
 
         <div class="topic-content">

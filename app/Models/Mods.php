@@ -55,7 +55,7 @@ class Mods extends Model
 
     # Связь с общими комментариями
     public function comments(){
-        return $this->hasMany(Comments::class, 'object_id')->where('topic_content', 0)->paginate(2);
+        return $this->hasMany(Comments::class, 'object_id')->where('topic_content', FALSE)->paginate(2);
     }
 
     # Связь с топиком

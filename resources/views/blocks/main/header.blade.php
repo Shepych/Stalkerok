@@ -7,20 +7,20 @@
         <div class="collapse navbar-collapse" id="navbarColor01">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a data-active="mods" class="nav-link" aria-current="page" href="{{ route('mods.list') }}">Моды</a>
+                    <a data-active="mods" class="nav-link {{ request()->is('mods/*') || request()->is('mods') ? 'active' : null }}" aria-current="page" href="{{ route('mods.list') }}">Моды</a>
                 </li>
                 <li class="nav-item">
-                    <a data-active="news" class="nav-link" href="{{ route('news.list') }}">Новости</a>
+                    <a data-active="news" class="nav-link {{ request()->is('news/*') || request()->is('news') ? 'active' : null }}" href="{{ route('news.list') }}">Новости</a>
                 </li>
                 <li class="nav-item">
-                    <a data-active="forum" class="nav-link" href="{{ route('forum') }}">Форум</a>
+                    <a data-active="forum" class="nav-link {{ request()->is('forum/*') || request()->is('forum') ? 'active' : null }}" href="{{ route('forum') }}">Форум</a>
                 </li>
                 <li class="nav-item">
                     <a data-active="store" class="nav-link" href="{{ route('store') }}">Магазин</a>
                 </li>
                 @if(Auth::user())
                     <li class="nav-item">
-                        <a data-active="profile" class="nav-link" href="{{ route('home', Auth::id()) }}">Профиль</a>
+                        <a data-active="profile" class="nav-link {{ request()->is('pda/*') ? 'active' : null }}" href="{{ route('profile', Auth::id()) }}">Профиль</a>
                     </li>
                 @else
                     <li class="nav-item">
